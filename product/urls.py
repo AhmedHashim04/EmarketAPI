@@ -1,10 +1,24 @@
 
 from django.urls import path
-from .views import product_list , product_detail , create_product \
-, update_product , delete_product , create_review , update_review , delete_review ,user_products ,user_reviewed_product \
-, user_reviewed_product_rating_comment , user_reviewed_products , user_reviews
+from product.views.product import (
+    product_list,
+    product_detail,
+    create_product,
+    update_product,
+    delete_product,
+    user_products,
+)
+from product.views.review import (
+    create_review,
+    update_review,
+    delete_review,
+    user_reviewed_products,
+    user_reviewed_product,
+    user_reviewed_product_rating_comment,
+    user_reviews,
+)
 
-#, product_add, product_edit, product_delete
+app_name = "product"
 
 urlpatterns = [
     path('', product_list, name='product_list'),

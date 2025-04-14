@@ -1,12 +1,12 @@
 from django.shortcuts import get_object_or_404
-from .filters import ProductFilter
+from ..filters import ProductFilter
 from rest_framework.pagination import PageNumberPagination
-from .models import Product , Review
+from ..models import Product , Review
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django_filters.rest_framework import DjangoFilterBackend , FilterSet
 
-from .serializers import ProductSerializer , ReviewSerializer
+from ..serializers.product import ProductSerializer , ReviewSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 

@@ -1,6 +1,5 @@
-from django.shortcuts import render
-from .models import Order, OrderItem
-from .serializers import OrderSerializer, OrderItemSerializer
+from ..models import Order
+from ..serializers.order import OrderSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response

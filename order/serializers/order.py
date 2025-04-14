@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Order, OrderItem
-from product.serializers import ProductSerializer
+from ..models import Order, OrderItem
+from product.serializers.product import ProductSerializer
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -21,8 +21,8 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'city', 'address', 'postal_code', 'phone_number', 'state', 'country',
-                  'profile', 'order_date', 'status', 'payment_status', 'payment_method',
-                  'total_amount', 'user', 'items']
+                'profile', 'order_date', 'status', 'payment_status', 'payment_method',
+                'total_amount', 'user', 'items']
         extra_kwargs = {
             'profile': {'required': True},
             'status': {'required': True},
@@ -31,4 +31,3 @@ class OrderSerializer(serializers.ModelSerializer):
             'total_amount': {'required': True}
         }
         read_only_fields = ['id', 'order_date']
- 
