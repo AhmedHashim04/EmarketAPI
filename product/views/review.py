@@ -1,16 +1,16 @@
 from django.shortcuts import get_object_or_404
-from ..filters import ProductFilter
-from rest_framework.pagination import PageNumberPagination
 from ..models import Product , Review
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
-
+from rest_framework.decorators import permission_classes ,authentication_classes
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from ..filters import ReviewsFilter
 from ..serializers.review import  ReviewSerializer
-from ..serializers.product import ProductSerializer 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework.pagination import PageNumberPagination
 
 @api_view(['POST'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def create_review(request, product_id):
     try:
@@ -19,16 +19,25 @@ def create_review(request, product_id):
         return Response({'error': 'Product not found'}, status=404)
     
     serializer = ReviewSerializer(data=request.data)
+    # Check if the user has already reviewed this product
+
+    if Review.objects.filter(product=product, user=request.user).exists():
+        return Response({'error': 'You have already reviewed this product'}, status=400)
+    # Check if the user is the owner of the product
+    if product.user == request.user:
+        return Response({'error': 'You cannot review your own product'}, status=400)
+    
     if serializer.is_valid():
         serializer.save(product=product, user=request.user)
         return Response({'Review': serializer.data}, status=201)
     return Response(serializer.errors, status=400)
 
 @api_view(['PUT'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def update_review(request, review_id):
+def update_review(request,product_id,review_id):
     try:
-        review = get_object_or_404(Review, id=review_id)
+        review = get_object_or_404(Review,product=product_id, id=review_id)
     except Review.DoesNotExist:
         return Response({'error': 'Review not found'}, status=404)
     
@@ -43,10 +52,11 @@ def update_review(request, review_id):
     return Response(serializer.errors, status=400)
 
 @api_view(['DELETE'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def delete_review(request, review_id):
+def delete_review(request,product_id,review_id):
     try:
-        review = get_object_or_404(Review, id=review_id)
+        review = get_object_or_404(Review,product=product_id, id=review_id)
     except Review.DoesNotExist:
         return Response({'error': 'Review not found'}, status=404)
 
@@ -57,57 +67,13 @@ def delete_review(request, review_id):
     return Response(status=204)
 
 @api_view(['GET'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def user_reviews(request):
-    # paginator = PageNumberPagination()
-    # paginator.page_size = 1  # /api/products/?page=1 to get 10 products per page
-    # filterset = ReviewsFilter(request.GET, queryset=Review.objects.filter(user=request.user).order_by('?'))    # /api/products/?category=Food  to filter by category
-    # queryset = paginator.paginate_queryset(filterset.qs, request)
-    # serializer = ProductSerializer(queryset, many=True)
-    # return Response({'Products':serializer.data , 'count':filterset.qs.count()} )
-    reviews = Review.objects.filter(user=request.user)
-    serializer = ReviewSerializer(reviews, many=True)
-    return Response({'Reviews': serializer.data})
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_products(request):
-    products = Product.objects.filter(user=request.user)
-    serializer = ProductSerializer(products, many=True)
-    return Response({'Products': serializer.data})
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_reviewed_products(request):
-    reviews = Review.objects.filter(user=request.user)
-    product_ids = reviews.values_list('product__id', flat=True)
-    products = Product.objects.filter(id__in=product_ids)
-    serializer = ProductSerializer(products, many=True)
-    return Response({'Products': serializer.data})
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_reviewed_product(request, product_id):
-    try:
-        product = get_object_or_404(Product, id=product_id)
-    except Product.DoesNotExist:
-        return Response({'error': 'Product not found'}, status=404)
+    paginator = PageNumberPagination()
+    paginator.page_size = 1  # /api/products/?page=1 to get 10 products per page
+    filterset = ReviewsFilter(request.GET, queryset=Review.objects.filter(user=request.user).order_by('?'))    # /api/products/?category=Food  to filter by category
+    queryset = paginator.paginate_queryset(filterset.qs, request)
+    serializer = ReviewSerializer(queryset, many=True)
+    return Response({'Reviews': serializer.data, 'count':filterset.qs.count()} )
     
-    reviews = Review.objects.filter(product=product, user=request.user)
-    serializer = ReviewSerializer(reviews, many=True)
-    return Response({'Reviews': serializer.data})
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_reviewed_product_rating_comment(request, product_id):
-    try:
-        product = get_object_or_404(Product, id=product_id)
-    except Product.DoesNotExist:
-        return Response({'error': 'Product not found'}, status=404)
-    
-    reviews = Review.objects.filter(product=product, user=request.user)
-    if reviews.exists():
-        rating = reviews.first().rating
-        comment = reviews.first().comment
-        return Response({'Rating': rating, 'Comment': comment})
-    return Response({'error': 'No review found for this product'}, status=404)

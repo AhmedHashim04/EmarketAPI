@@ -3,8 +3,9 @@ from ..filters import ProductFilter
 from rest_framework.pagination import PageNumberPagination
 from ..models import Product , Review
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import permission_classes ,authentication_classes
 from ..serializers.review import  ReviewSerializer
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from ..serializers.product import ProductSerializer 
 from rest_framework.response import Response
@@ -13,7 +14,7 @@ from rest_framework.decorators import api_view
 @api_view(['GET'])
 def product_list(request):
     paginator = PageNumberPagination()
-    paginator.page_size = 1  # /api/products/?page=1 to get 10 products per page
+    paginator.page_size = 10  # /api/products/?page=1 to get 10 products per page
     filterset = ProductFilter(request.GET, queryset=Product.objects.all().order_by('?'))    # /api/products/?category=Food  to filter by category
 
     queryset = paginator.paginate_queryset(filterset.qs, request)
@@ -22,19 +23,22 @@ def product_list(request):
     return Response({'Products':serializer.data , 'count':filterset.qs.count()} )
 
 @api_view(['GET'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def product_detail(request, product_id):
-    try:
-        product = get_object_or_404(id=product_id)
-    except Product.DoesNotExist:
-        return Response({'error': 'Product not found'}, status=404)
-    
-    serializer = ProductSerializer(product)
-    reviews = Review.objects.filter(product=product)
-    review_serializer = ReviewSerializer(reviews, many=True)
-    return Response({'Product': serializer.data, 'Reviews': review_serializer.data})
+    if request.method == 'GET' :
+        try:
+            product = get_object_or_404(Product,id=product_id)
+        except Product.DoesNotExist:
+            return Response({'error': 'Product not found'}, status=404)
+        
+        serializer = ProductSerializer(product)
+        reviews = Review.objects.filter(product=product)
+        review_serializer = ReviewSerializer(reviews, many=True)
+        return Response({'Product': serializer.data, 'Reviews': review_serializer.data})
 
 @api_view(['POST'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def create_product(request):
     serializer = ProductSerializer(data=request.data)
@@ -44,6 +48,7 @@ def create_product(request):
     return Response(serializer.errors, status=400)
 
 @api_view(['PUT'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def update_product(request, product_id):
     try:
@@ -62,6 +67,7 @@ def update_product(request, product_id):
     return Response(serializer.errors, status=400)
 
 @api_view(['DELETE'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_product(request, product_id):
     try:
@@ -77,6 +83,7 @@ def delete_product(request, product_id):
 
 
 @api_view(['GET'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def user_products(request):
     products = Product.objects.filter(user=request.user)

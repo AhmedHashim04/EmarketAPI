@@ -1,14 +1,13 @@
 
 from django.urls import path
-from .views.views import OrderListView, OrderDetailView
+from .views.order import OrderViewSet
+from rest_framework.routers import DefaultRouter
+
 
 app_name = "order"
-urlpatterns = [
-    path('order/', OrderListView.as_view(), name='order-list'),
-    path('order/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
-    path('order/<int:pk>/update/', OrderDetailView.as_view(), name='order-update'),
-    path('order/<int:pk>/delete/', OrderDetailView.as_view(), name='order-delete'),
 
-]
+router =DefaultRouter()
+router.register('my_orders',OrderViewSet,basename='orders')
 
 
+urlpatterns = router.urls  

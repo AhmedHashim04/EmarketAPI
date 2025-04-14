@@ -21,11 +21,11 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'city', 'address', 'postal_code', 'phone_number', 'state', 'country',
-                'profile', 'order_date', 'status', 'payment_status', 'payment_method',
+                'profile', 'order_date', 'order_status', 'payment_status', 'payment_method',
                 'total_amount', 'user', 'items']
         extra_kwargs = {
             'profile': {'required': True},
-            'status': {'required': True},
+            'order_status': {'required': True},
             'payment_status': {'required': True},
             'payment_method': {'required': True},
             'total_amount': {'required': True}

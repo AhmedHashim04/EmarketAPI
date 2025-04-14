@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import permission_classes 
 from rest_framework.authtoken.models import Token
 from account.serializers.user import  RegisterSerializer
 from django.contrib.auth import authenticate
@@ -14,6 +14,7 @@ from datetime import timedelta
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from account.models import Profile
+
 @api_view(['POST'])
 def register(request):
     """
