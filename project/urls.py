@@ -6,10 +6,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/account/', include('account.urls')),
     path('api/products/', include('product.urls')),
+    path('api/orders/', include('order.urls')),
 
 ]
 

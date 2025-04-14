@@ -12,7 +12,6 @@ from rest_framework.decorators import api_view
 
 @api_view(['GET'])
 def product_list(request):
-    
     paginator = PageNumberPagination()
     paginator.page_size = 1  # /api/products/?page=1 to get 10 products per page
     filterset = ProductFilter(request.GET, queryset=Product.objects.all().order_by('?'))    # /api/products/?category=Food  to filter by category
